@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大姐專屬緊急避難包開箱照產生器</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2canvas 截圖轉圖套件 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    /* 不同的隨機桌面底色樣式 */
+    .bg-wood-dark {
+      background: linear-gradient(135deg, #5c3a21 0%, #3e2716 100%);
+    }
+    .bg-wood-light {
+      background: linear-gradient(135deg, #a67c52 0%, #825b34 100%);
+    }
+    .bg-mat-green {
+      background: linear-gradient(135deg, #2d4a3e 0%, #1c3028 100%);
+    }
+    .bg-tactical-grey {
+      background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-6 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- 頂部標題區 -->
+    <header class="text-center bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">🎒 專屬緊急避難包照相館</h1>
+      <p class="text-slate-500 text-sm mt-1">選好自己的物資，拍一張專屬於妳、獨一無二的避難包開箱照！</p>
+    </header>
+
+    <!-- 步驟 1：輸入與設定面板 -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+      <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+        <span class="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
+        填寫姓名與選擇身分
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">大姐的大名或暱稱：</label>
+          <input type="text" id="ownerName" value="美惠大姐" oninput="updateCardText()" 
+                 placeholder="例如：陳大姐、阿美阿姨" 
+                 class="w-full border border-slate-300 rounded-xl p-2.5 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">選擇適合的避難模式：</label>
+          <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+            <button onclick="setPersona('elderly')" class="persona-btn border-2 border-blue-500 bg-blue-50 text-blue-700 py-2 rounded-xl transition">
+              👵 銀髮長青安心款
+            </button>
+            <button onclick="setPersona('standard')" class="persona-btn border border-slate-200 text-slate-600 py-2 rounded-xl hover:bg-slate-50 transition">
+              🧑 萬用自救必備款
+            </button>
+            <button onclick="setPersona('baby')" class="persona-btn border border-slate-200 text-slate-600 py-2 rounded-xl hover:bg-slate-50 transition">
+              👶 金孫育兒同樂款
+            </button>
+            <button onclick="setPersona('pet')" class="persona-btn border border-slate-200 text-slate-600 py-2 rounded-xl hover:bg-slate-50 transition">
+              🐾 毛孩守護同伴款
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 物資快速自訂清單 (折疊式或簡短版) -->
+      <div class="pt-2 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-slate-600">目前包包內的物資（可自由加減打勾）：</label>
+          <button onclick="randomizeTheme()" class="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold">
+            🎲 換一張桌布底色
+          </button>
+        </div>
+        <div id="itemCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs">
+          <!-- JS 自動產生核取方塊 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 2：即時產生的桌面開箱分享照畫布 (用來截圖匯出) -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <span class="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">2</span>
+          即時照片預覽
+        </h2>
+        <span class="text-xs text-slate-500">已自動生成專屬防偽編號</span>
+      </div>
+
+      <!-- 核心截圖區塊 -->
+      <div id="exportArea" class="bg-wood-dark p-6 md:p-8 rounded-3xl shadow-2xl text-white relative overflow-hidden transition-all duration-300">
+        
+        <!-- 頂部資訊名牌 -->
+        <div class="flex justify-between items-start border-b border-white/20 pb-3 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="badgeText" class="bg-amber-400 text-amber-950 font-black text-xs px-2.5 py-0.5 rounded-full uppercase shadow">
+                銀髮長青安心款
+              </span>
+              <span id="uniqueCode" class="text-[11px] font-mono text-white/70">SAFE-8823</span>
+            </div>
+            <h3 id="displayTitle" class="text-2xl font-black mt-1 drop-shadow-md text-amber-100">
+              美惠大姐 的專屬緊急避難包
+            </h3>
+            <p class="text-xs text-white/80 mt-0.5">72小時黃金應變物資 ｜ 萬全整備完成</p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl">🎒</div>
+            <div id="currentDateText" class="text-[10px] font-mono text-white/60 mt-1">2026.09.19</div>
+          </div>
+        </div>
+
+        <!-- 中間：桌面物資攤平展示區 (平鋪網格) -->
+        <div id="photoSpreadGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 my-4">
+          <!-- JS 動態插入物資卡片 -->
+        </div>
+
+        <!-- 底部安全小叮嚀 -->
+        <div class="pt-3 border-t border-white/20 flex justify-between items-center text-[11px] text-white/60">
+          <span>⚠️ 放置於玄關隨手可拿處 ｜ 飲水糧食每半年定檢換新</span>
+          <span class="font-bold text-amber-200">平安心安 ❤️ 有備無患</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 3：一鍵下載轉發按鈕 -->
+    <div class="text-center pb-8">
+      <button onclick="downloadImage()" class="w-full md:w-2/3 mx-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-lg py-4 px-6 rounded-2xl shadow-lg transform active:scale-95 transition flex items-center justify-center gap-3">
+        <span>📸 點我下載我的避難包照片 (存到手機)</span>
+      </button>
+      <p class="text-xs text-slate-400 mt-2">下載完成後，即可直接在 LINE 傳給姊妹與家族群組分享！</p>
+    </div>
+
+  </div>
+
+  <script>
+    // 預設物資資料庫
+    const ITEMS = [
+      { id: "glasses", name: "老花眼鏡/專用盒", icon: "👓", groups: ["elderly"] },
+      { id: "chronic_meds", name: "慢性病處方籤與長期藥", icon: "📜", groups: ["elderly"] },
+      { id: "wallet", name: "小額現金零錢包", icon: "👛", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "water", name: "瓶裝飲用水 (1~2L)", icon: "💧", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "rations", name: "高營養即食餅乾/乾糧", icon: "🍪", groups: ["elderly", "standard"] },
+      { id: "flashlight", name: "強光 LED 手電筒", icon: "🔦", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "powerbank", name: "飽電行動電源與線", icon: "🔋", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "firstaid", name: "綜合急救常備藥包", icon: "🩹", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "whistle", name: "高頻求生哨", icon: "📢", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "gloves", name: "防滑防穿刺手套", icon: "🧤", groups: ["elderly", "standard"] },
+      { id: "towel", name: "快乾毛巾與保暖衣", icon: "🧣", groups: ["elderly", "standard", "baby"] },
+      { id: "docs", name: "防水袋重要證件影本", icon: "🪪", groups: ["elderly", "standard", "baby", "pet"] },
+      { id: "knife", name: "多功能瑞士小刀", icon: "🔪", groups: ["standard"] },
+      { id: "formula", name: "配方奶粉與可攜奶瓶", icon: "🍼", groups: ["baby"] },
+      { id: "diaper", name: "嬰兒紙尿褲與濕紙巾", icon: "👶", groups: ["baby"] },
+      { id: "petfood", name: "寵物乾糧與折疊水碗", icon: "🍖", groups: ["pet"] },
+      { id: "leash", name: "防暴衝牽繩與外出提籠", icon: "🦮", groups: ["pet"] }
+    ];
+
+    const THEMES = ['bg-wood-dark', 'bg-wood-light', 'bg-mat-green', 'bg-tactical-grey'];
+    let currentThemeIndex = 0;
+    let selectedItemIds = new Set();
+    let currentMode = 'elderly';
+
+    const MODE_TITLES = {
+      elderly: "銀髮長青安心款",
+      standard: "萬用自救必備款",
+      baby: "金孫育兒同樂款",
+      pet: "毛孩守護同伴款"
+    };
+
+    // 初始化渲染核取方塊
+    function initCheckboxes() {
+      const container = document.getElementById('itemCheckboxes');
+      container.innerHTML = ITEMS.map(item => `
+        <label class="flex items-center gap-1.5 p-1.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 select-none">
+          <input type="checkbox" id="chk_${item.id}" value="${item.id}" onchange="toggleItem('${item.id}')" class="rounded text-blue-600 focus:ring-0">
+          <span class="text-sm">${item.icon}</span>
+          <span class="truncate text-slate-700">${item.name}</span>
+        </label>
+      `).join('');
+    }
+
+    // 換身分切換
+    function setPersona(modeKey) {
+      currentMode = modeKey;
+      selectedItemIds.clear();
+
+      ITEMS.forEach(item => {
+        if (item.groups.includes(modeKey)) {
+          selectedItemIds.add(item.id);
+        }
+      });
+
+      // 每次切換自動生成一個全新防偽隨機編號
+      document.getElementById('uniqueCode').innerText = 'SAFE-' + Math.floor(1000 + Math.random() * 9000);
+
+      // 切換按鈕樣式
+      document.querySelectorAll('.persona-btn').forEach(btn => {
+        btn.classList.remove('border-2', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+        btn.classList.add('border-slate-200', 'text-slate-600');
+      });
+      event?.currentTarget?.classList?.add('border-2', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+
+      updateCheckboxesState();
+      renderSpread();
+      updateCardText();
+    }
+
+    function toggleItem(id) {
+      if (selectedItemIds.has(id)) {
+        selectedItemIds.delete(id);
+      } else {
+        selectedItemIds.add(id);
+      }
+      renderSpread();
+    }
+
+    function updateCheckboxesState() {
+      ITEMS.forEach(item => {
+        const chk = document.getElementById(`chk_${item.id}`);
+        if (chk) chk.checked = selectedItemIds.has(item.id);
+      });
+    }
+
+    function updateCardText() {
+      const name = document.getElementById('ownerName').value.trim() || '我';
+      document.getElementById('displayTitle').innerText = `${name} 的專屬緊急避難包`;
+      document.getElementById('badgeText').innerText = MODE_TITLES[currentMode];
+    }
+
+    // 隨機切換背景木紋或底色
+    function randomizeTheme() {
+      const area = document.getElementById('exportArea');
+      THEMES.forEach(t => area.classList.remove(t));
+      currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+      area.classList.add(THEMES[currentThemeIndex]);
+    }
+
+    // 渲染攤平桌面上的物資卡
+    function renderSpread() {
+      const grid = document.getElementById('photoSpreadGrid');
+      const activeItems = ITEMS.filter(i => selectedItemIds.has(i.id));
+
+      grid.innerHTML = activeItems.map(item => `
+        <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+          <span class="text-2xl drop-shadow">${item.icon}</span>
+          <span class="text-xs font-bold text-white tracking-wide truncate">${item.name}</span>
+        </div>
+      `).join('');
+    }
+
+    // 儲存為高畫質照片
+    function downloadImage() {
+      const area = document.getElementById('exportArea');
+      const name = document.getElementById('ownerName').value.trim() || '大姐';
+
+      html2canvas(area, {
+        scale: 2, // 2倍超清晰解析度
+        useCORS: true,
+        backgroundColor: null
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `${name}_專屬緊急避難包開箱照.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    window.onload = () => {
+      initCheckboxes();
+      // 設定當前日期
+      const now = new Date();
+      document.getElementById('currentDateText').innerText = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+      setPersona('elderly');
+    };
+  </script>
+</body>
+</html>
